@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IAS412 — Information Assurance & Security Exam</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #4a148c, #7b1fa2); min-height: 100vh; padding: 20px; color: #333; }
+  .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); overflow: hidden; }
+  header { background: linear-gradient(135deg, #4a148c, #6a1b9a); color: #fff; padding: 25px; text-align: center; }
+  header h1 { font-size: 1.4em; margin-bottom: 5px; }
+  header p { font-size: 0.9em; opacity: 0.9; }
+  .progress-bar { height: 6px; background: #ddd; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); width: 0%; transition: width 0.3s; }
+  .content { padding: 30px; }
+  .section-title { background: #4a148c; color: #fff; padding: 12px 18px; border-radius: 6px; margin: 25px 0 15px; font-size: 1.05em; }
+  .section-title:first-child { margin-top: 0; }
+  .question { background: #f8f9fa; border-left: 4px solid #9c27b0; padding: 15px 18px; margin-bottom: 15px; border-radius: 6px; }
+  .question.correct { background: #d4edda; border-left-color: #28a745; }
+  .question.wrong { background: #f8d7da; border-left-color: #dc3545; }
+  .q-text { font-weight: 600; margin-bottom: 10px; line-height: 1.6; }
+  .options label { display: block; padding: 8px 12px; margin: 5px 0; border-radius: 5px; cursor: pointer; border: 1px solid #e0e0e0; background: #fff; transition: background 0.15s; }
+  .options label:hover { background: #f3e5f5; }
+  .options input { margin-right: 8px; }
+  input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; margin-top: 5px; }
+  input[type="text"]:focus { outline: none; border-color: #9c27b0; }
+  .feedback { margin-top: 8px; font-size: 0.9em; padding: 6px 10px; border-radius: 4px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: #d4edda; color: #155724; }
+  .feedback.wrong { background: #f8d7da; color: #721c24; }
+  .diagram-box { background: #f3e5f5; border: 2px dashed #9c27b0; border-radius: 8px; padding: 18px; margin: 12px 0; text-align: center; }
+  .diagram-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+  .diagram-node { display: inline-block; padding: 10px 16px; background: #9c27b0; color: #fff; border-radius: 6px; font-weight: 600; font-size: 0.9em; }
+  .diagram-node.blank { background: #fff; border: 2px solid #9c27b0; color: #9c27b0; min-width: 120px; }
+  .diagram-arrow { font-size: 1.4em; color: #9c27b0; font-weight: 700; }
+  .diagram-input { display: inline-block; padding: 6px 10px; border: 2px solid #9c27b0; border-radius: 6px; font-size: 0.9em; width: 160px; text-align: center; }
+  .diagram-input:focus { outline: none; background: #f3e5f5; }
+  .btn-bar { position: sticky; bottom: 0; background: #fff; padding: 18px; border-top: 2px solid #eee; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button.btn { padding: 12px 28px; border: none; border-radius: 6px; font-size: 1em; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+  button.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .btn-submit { background: #27ae60; color: #fff; }
+  .btn-reset { background: #e74c3c; color: #fff; }
+  #results { display: none; background: linear-gradient(135deg, #4a148c, #6a1b9a); color: #fff; padding: 30px; text-align: center; margin: 20px; border-radius: 10px; }
+  #results.show { display: block; }
+  #results h2 { font-size: 1.8em; margin-bottom: 10px; }
+  #scoreDisplay { font-size: 3em; font-weight: 700; margin: 15px 0; }
+  #scoreDetail { font-size: 1em; opacity: 0.95; line-height: 1.8; }
+  .badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; margin-top: 10px; font-weight: 600; }
+  .badge.pass { background: #27ae60; }
+  .badge.fail { background: #e74c3c; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>IAS412 — Information Assurance and Security 2</h1>
+    <p>Cyber Security & Risk Management Exam | Total: 100 Points</p>
+  </header>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="content" id="quizContent"></div>
+  <div id="results">
+    <h2>Exam Complete!</h2>
+    <div id="scoreDisplay">0 / 100</div>
+    <div id="scoreDetail"></div>
+    <div id="badgeWrap"></div>
+  </div>
+  <div class="btn-bar">
+    <button class="btn btn-submit" onclick="submitExam()">Submit Exam</button>
+    <button class="btn btn-reset" onclick="resetExam()">Reset</button>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  // ---- PART I: MULTIPLE CHOICE (15 × 2 = 30) ----
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "1. A specialized subset of InfoSec focusing on technology-related threats.", options: ["Information Security", "Cybersecurity", "Information Assurance", "Network Security"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "2. Which is NOT part of the CIA Triad?", options: ["Confidentiality", "Integrity", "Authenticity", "Availability"], answer: 2 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "3. Direct interference with system operations (e.g., DDoS) is what type of attack?", options: ["Passive Attack", "Active Attack", "Social Engineering", "Insider Threat"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "4. Which regulation was enacted by the European Union in 2018?", options: ["CCPA", "HIPAA", "GDPR", "RA 10173"], answer: 2 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "5. Philippine law known as the Data Privacy Act of 2012?", options: ["RA 10175", "RA 10173", "RA 7394", "RA 8792"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "6. Strategy that shifts risk to a third party (e.g., insurance)?", options: ["Avoid", "Transfer", "Mitigate", "Accept"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "7. Strategy that eliminates the risk or its source?", options: ["Avoid", "Transfer", "Mitigate", "Accept"], answer: 0 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "8. The proportion of an asset's value likely destroyed by a risk?", options: ["ARO", "SLE", "EF", "ALE"], answer: 2 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "9. Formula for Annual Loss Expectancy (ALE)?", options: ["AV * EF", "SLE * ARO", "AV * ARO", "SLE * EF"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "10. Security controls that try to prevent an incident from occurring?", options: ["Detective", "Corrective", "Preventive", "Compensating"], answer: 2 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "11. Security controls that detect incidents AFTER they occur?", options: ["Detective", "Corrective", "Preventive", "Deterrent"], answer: 0 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "12. Which framework offers a 7-step process for RMF?", options: ["ISO 27005", "NIST RMF", "ISO 31000", "COBIT"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "13. Which of the following is a pillar of Information Assurance?", options: ["Scalability", "Non-Repudiation", "Redundancy", "Speed"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "14. Which threat actor conducts cyber warfare and espionage?", options: ["Hacktivists", "Nation States", "Criminal Groups", "Script Kiddies"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "15. What type of attack silently monitors communications?", options: ["Active Attack", "Passive Attack", "DDoS", "Ransomware"], answer: 1 },
+
+  // ---- PART II: IDENTIFICATION (10 × 2 = 20) ----
+  { part: "PART II: IDENTIFICATION (2 pts each)", type: "text", q: "16. The practice of preventing unauthorized access, use, disclosure, disruption, modification, inspection, recording, or destruction of sensitive records.", answer: ["information security", "infosec"] },
+  { part: "PART II: IDENTIFICATION (2 pts each)", type: "text", q: "17. The principle ensuring data is accessible only to authorized individuals.", answer: ["confidentiality"] },
+  { part: "PART II: IDENTIFICATION (2 pts each)", type: "text", q: "18. The principle ensuring accuracy, consistency, and trustworthiness of data.", answer: ["integrity"] },
+  { part: "PART II: IDENTIFICATION (2 pts each)", type: "text", q: "19. The principle ensuring systems and data remain operational and accessible.", answer: ["availability"] },
+  { part: "PART II: IDENTIFICATION (2 pts each)", type: "text", q: "20. Manipulating individuals into revealing confidential credentials.", answer: ["social engineering"] },
+  { part: "PART II: IDENTIFICATION (2 pts each)", type: "text", q: "21. Data that directly identifies individuals (abbreviation).", answer: ["pii", "personally identifiable information"] },
+  { part: "PART II: IDENTIFICATION (2 pts each)", type: "text", q: "22. The continuing process to identify, analyze, evaluate, and treat loss exposure.", answer: ["risk management"] },
+  { part: "PART II: IDENTIFICATION (2 pts each)", type: "text", q: "23. A tool that captures risk name, description, category, probability, impact, and status.", answer: ["risk register"] },
+  { part: "PART II: IDENTIFICATION (2 pts each)", type: "text", q: "24. The expected monetary loss every time a risk is exploited (abbreviation).", answer: ["sle", "single loss expectancy"] },
+  { part: "PART II: IDENTIFICATION (2 pts each)", type: "text", q: "25. The probability that a risk will occur within a year (abbreviation).", answer: ["aro", "average rate of occurrence"] },
+
+  // ---- PART III: FILL OUT THE DIAGRAM (5 × 2 = 10) ----
+  { part: "PART III: FILL OUT THE DIAGRAM (2 pts each)", type: "diagram", q: "26-30. Complete the CIA Triad diagram. Fill in the three missing pillars and identify the two risk management major processes shown.",
+    fields: [
+      { label: "A (Top of CIA Triad)", answer: ["confidentiality"] },
+      { label: "B (Left of CIA Triad)", answer: ["integrity"] },
+      { label: "C (Right of CIA Triad)", answer: ["availability"] },
+      { label: "D (Risk Mgmt Process 1)", answer: ["risk identification"] },
+      { label: "E (Risk Mgmt Process 3)", answer: ["risk control"] }
+    ]
+  },
+
+  // ---- PART IV: ENUMERATION (first number only, 5 items × 8 = 40 pts - 1pt each) ----
+  { part: "PART IV: ENUMERATION — Give the first number only (1 pt each)", type: "text", q: "31-35. Enumerate the 5 Pillars of Information Assurance. (5 pts) — Separate with commas.", answer: ["confidentiality", "integrity", "availability", "authenticity", "non-repudiation"], multi: true, points: 5 },
+  { part: "PART IV: ENUMERATION — Give the first number only (1 pt each)", type: "text", q: "36-40. Enumerate the 5 common Risk Responses. (5 pts) — Separate with commas.", answer: ["avoid", "transfer", "mitigate", "accept", "share"], multi: true, points: 5 },
+  { part: "PART IV: ENUMERATION — Give the first number only (1 pt each)", type: "text", q: "41-45. Enumerate the 5 classifications of Security Controls by goal. (5 pts) — Separate with commas.", answer: ["preventive", "detective", "corrective", "deterrent", "compensating"], multi: true, points: 5 },
+  { part: "PART IV: ENUMERATION — Give the first number only (1 pt each)", type: "text", q: "46-50. Enumerate the 5 main types of Risk Assessment Methodologies/Approaches. (5 pts) — Separate with commas.", answer: ["qualitative", "quantitative", "semi-quantitative", "asset-based", "vulnerability-based", "threat-based"], multi: true, points: 5 }
+];
+
+let answers = new Array(QUESTIONS.length).fill(null);
+let diagramAnswers = {};
+let submitted = false;
+const content = document.getElementById('quizContent');
+const progressFill = document.getElementById('progressFill');
+
+function render() {
+  content.innerHTML = '';
+  let currentPart = '';
+  QUESTIONS.forEach((q, i) => {
+    if (q.part !== currentPart) {
+      currentPart = q.part;
+      const t = document.createElement('div');
+      t.className = 'section-title';
+      t.textContent = currentPart;
+      content.appendChild(t);
+    }
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.id = 'q' + i;
+    const qText = document.createElement('div');
+    qText.className = 'q-text';
+    qText.textContent = q.q;
+    div.appendChild(qText);
+
+    if (q.type === 'mc') {
+      const opts = document.createElement('div');
+      opts.className = 'options';
+      q.options.forEach((opt, oi) => {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'radio'; input.name = 'q' + i; input.value = oi;
+        input.onchange = () => { answers[i] = oi; updateProgress(); };
+        label.appendChild(input); label.appendChild(document.createTextNode(opt));
+        opts.appendChild(label);
+      });
+      div.appendChild(opts);
+    } else if (q.type === 'text') {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Type your answer here...';
+      input.oninput = () => { answers[i] = input.value; updateProgress(); };
+      div.appendChild(input);
+    } else if (q.type === 'diagram') {
+      const box = document.createElement('div');
+      box.className = 'diagram-box';
+      // CIA Triad
+      const triad = document.createElement('div');
+      triad.innerHTML = '<div style="font-weight:700;color:#4a148c;margin-bottom:8px;">CIA TRIAD</div>';
+      const row1 = document.createElement('div');
+      row1.className = 'diagram-row';
+      row1.innerHTML = '<div class="diagram-node blank">A</div>';
+      triad.appendChild(row1);
+      const row2 = document.createElement('div');
+      row2.className = 'diagram-row';
+      row2.innerHTML = '<div class="diagram-node blank">B</div><span class="diagram-arrow">↔</span><div class="diagram-node blank">C</div>';
+      triad.appendChild(row2);
+      box.appendChild(triad);
+      // Risk Management
+      const rm = document.createElement('div');
+      rm.style.marginTop = '18px';
+      rm.innerHTML = '<div style="font-weight:700;color:#4a148c;margin-bottom:8px;">RISK MANAGEMENT PROCESSES</div>';
+      const rmRow = document.createElement('div');
+      rmRow.className = 'diagram-row';
+      rmRow.innerHTML = '<div class="diagram-node blank">D</div><span class="diagram-arrow">→</span><div class="diagram-node">Risk Assessment</div><span class="diagram-arrow">→</span><div class="diagram-node blank">E</div>';
+      rm.appendChild(rmRow);
+      box.appendChild(rm);
+
+      // Inputs for each field
+      const inputs = document.createElement('div');
+      inputs.style.marginTop = '15px';
+      q.fields.forEach((f, fi) => {
+        const row = document.createElement('div');
+        row.style.margin = '8px 0';
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.gap = '10px';
+        const label = document.createElement('span');
+        label.textContent = f.label + ':';
+        label.style.fontWeight = '600';
+        label.style.minWidth = '200px';
+        label.style.textAlign = 'left';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'diagram-input';
+        input.placeholder = 'Answer...';
+        input.oninput = () => {
+          diagramAnswers[i + '_' + fi] = input.value;
+          updateProgress();
+        };
+        row.appendChild(label); row.appendChild(input);
+        inputs.appendChild(row);
+      });
+      box.appendChild(inputs);
+      div.appendChild(box);
+    }
+    const fb = document.createElement('div');
+    fb.className = 'feedback'; fb.id = 'fb' + i;
+    div.appendChild(fb);
+    content.appendChild(div);
+  });
+}
+
+function updateProgress() {
+  let answered = 0;
+  QUESTIONS.forEach((q, i) => {
+    if (q.type === 'diagram') {
+      const filled = q.fields.filter((f, fi) => diagramAnswers[i + '_' + fi] && diagramAnswers[i + '_' + fi].trim()).length;
+      if (filled > 0) answered++;
+    } else if (q.type === 'text' && q.multi) {
+      if (answers[i] && answers[i].trim().length > 0) answered++;
+    } else if (answers[i] !== null && answers[i] !== '') answered++;
+  });
+  progressFill.style.width = (answered / QUESTIONS.length * 100) + '%';
+}
+
+function normalize(str) { return String(str).toLowerCase().trim().replace(/[\[\]]/g, '').replace(/\s+/g, ' '); }
+
+function checkAnswer(q, userAns) {
+  if (q.type === 'mc') return userAns === q.answer;
+  if (q.type === 'text') {
+    const user = normalize(userAns);
+    if (q.multi) {
+      const parts = user.split(',').map(s => s.trim()).filter(Boolean);
+      const matched = new Set(); let hits = 0;
+      parts.forEach(p => {
+        q.answer.forEach((a, idx) => {
+          if (!matched.has(idx) && (p === a || p.includes(a) || a.includes(p))) { matched.add(idx); hits++; }
+        });
+      });
+      return hits;
+    }
+    return q.answer.some(a => user === a || user.includes(a));
+  }
+  return false;
+}
+
+function getPoints(q, i) {
+  if (q.type === 'mc') return checkAnswer(q, answers[i]) ? 2 : 0;
+  if (q.type === 'text') {
+    if (q.multi) return checkAnswer(q, answers[i]);
+    return checkAnswer(q, answers[i]) ? 2 : 0;
+  }
+  if (q.type === 'diagram') {
+    let hits = 0;
+    q.fields.forEach((f, fi) => {
+      const u = normalize(diagramAnswers[i + '_' + fi] || '');
+      if (f.answer.some(a => u === a || u.includes(a))) hits++;
+    });
+    return hits * 2;
+  }
+  return 0;
+}
+function getMaxPoints(q) {
+  if (q.type === 'mc') return 2;
+  if (q.type === 'text') return q.multi ? q.points : 2;
+  if (q.type === 'diagram') return q.fields.length * 2;
+  return 0;
+}
+
+function submitExam() {
+  submitted = true;
+  let totalScore = 0, maxScore = 0, partScores = {};
+  QUESTIONS.forEach((q, i) => {
+    const div = document.getElementById('q' + i);
+    const fb = document.getElementById('fb' + i);
+    const pts = getPoints(q, i);
+    const maxPts = getMaxPoints(q);
+    totalScore += pts; maxScore += maxPts;
+    if (!partScores[q.part]) partScores[q.part] = { earned: 0, max: 0 };
+    partScores[q.part].earned += pts; partScores[q.part].max += maxPts;
+    div.classList.remove('correct', 'wrong');
+    fb.classList.remove('show', 'correct', 'wrong');
+    let correctText = '';
+    if (q.type === 'mc') correctText = q.options[q.answer];
+    else if (q.type === 'text') correctText = q.answer.join(', ');
+    else if (q.type === 'diagram') correctText = q.fields.map(f => f.label + '=' + f.answer[0]).join('; ');
+    if (pts === maxPts) {
+      div.classList.add('correct'); fb.classList.add('show', 'correct');
+      fb.textContent = '✓ Correct (' + pts + '/' + maxPts + ')';
+    } else if (pts > 0) {
+      div.classList.add('wrong'); fb.classList.add('show', 'wrong');
+      fb.textContent = '◐ Partial (' + pts + '/' + maxPts + ') — Answer: ' + correctText;
+    } else {
+      div.classList.add('wrong'); fb.classList.add('show', 'wrong');
+      fb.textContent = '✗ Wrong (' + pts + '/' + maxPts + ') — Answer: ' + correctText;
+    }
+  });
+  const pct = Math.round(totalScore / maxScore * 100);
+  document.getElementById('scoreDisplay').textContent = totalScore + ' / ' + maxScore;
+  let detail = '<strong>Percentage: ' + pct + '%</strong><br><br><div style="text-align:left;display:inline-block;">';
+  for (const p in partScores) detail += p + ': ' + partScores[p].earned + ' / ' + partScores[p].max + '<br>';
+  detail += '</div>';
+  document.getElementById('scoreDetail').innerHTML = detail;
+  const bw = document.getElementById('badgeWrap'); bw.innerHTML = '';
+  const badge = document.createElement('span');
+  badge.className = 'badge ' + (pct >= 75 ? 'pass' : 'fail');
+  badge.textContent = pct >= 75 ? '✓ PASSED' : '✗ FAILED (need 75%)';
+  bw.appendChild(badge);
+  const r = document.getElementById('results');
+  r.classList.add('show'); r.scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetExam() {
+  if (!confirm('Reset all answers?')) return;
+  answers = new Array(QUESTIONS.length).fill(null);
+  diagramAnswers = {};
+  submitted = false;
+  document.getElementById('results').classList.remove('show');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('input[type="text"]').forEach(t => t.value = '');
+  document.querySelectorAll('.question').forEach(q => q.classList.remove('correct', 'wrong'));
+  document.querySelectorAll('.feedback').forEach(f => f.classList.remove('show', 'correct', 'wrong'));
+  progressFill.style.width = '0%';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+render();
+</script>
+</body>
+</html>

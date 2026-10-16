@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITPROFEL6 — React Native Exam</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #00695c, #00897b); min-height: 100vh; padding: 20px; color: #333; }
+  .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); overflow: hidden; }
+  header { background: linear-gradient(135deg, #00695c, #00796b); color: #fff; padding: 25px; text-align: center; }
+  header h1 { font-size: 1.4em; margin-bottom: 5px; }
+  header p { font-size: 0.9em; opacity: 0.9; }
+  .progress-bar { height: 6px; background: #ddd; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); width: 0%; transition: width 0.3s; }
+  .content { padding: 30px; }
+  .question { background: #f8f9fa; border-left: 4px solid #00897b; padding: 15px 18px; margin-bottom: 12px; border-radius: 6px; }
+  .question.correct { background: #d4edda; border-left-color: #28a745; }
+  .question.wrong { background: #f8d7da; border-left-color: #dc3545; }
+  .q-text { font-weight: 600; margin-bottom: 10px; line-height: 1.6; }
+  .options label { display: block; padding: 8px 12px; margin: 5px 0; border-radius: 5px; cursor: pointer; border: 1px solid #e0e0e0; background: #fff; transition: background 0.15s; }
+  .options label:hover { background: #e0f2f1; }
+  .options input { margin-right: 8px; }
+  .feedback { margin-top: 8px; font-size: 0.9em; padding: 6px 10px; border-radius: 4px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: #d4edda; color: #155724; }
+  .feedback.wrong { background: #f8d7da; color: #721c24; }
+  .btn-bar { position: sticky; bottom: 0; background: #fff; padding: 18px; border-top: 2px solid #eee; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button.btn { padding: 12px 28px; border: none; border-radius: 6px; font-size: 1em; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+  button.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .btn-submit { background: #27ae60; color: #fff; }
+  .btn-reset { background: #e74c3c; color: #fff; }
+  #results { display: none; background: linear-gradient(135deg, #00695c, #00796b); color: #fff; padding: 30px; text-align: center; margin: 20px; border-radius: 10px; }
+  #results.show { display: block; }
+  #results h2 { font-size: 1.8em; margin-bottom: 10px; }
+  #scoreDisplay { font-size: 3em; font-weight: 700; margin: 15px 0; }
+  #scoreDetail { font-size: 1em; opacity: 0.95; line-height: 1.8; }
+  .badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; margin-top: 10px; font-weight: 600; }
+  .badge.pass { background: #27ae60; }
+  .badge.fail { background: #e74c3c; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>ITPROFEL6 — Mobile Development</h1>
+    <p>React Native • Expo • TypeScript | 50 Items × 2 pts = 100 Points</p>
+  </header>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="content" id="quizContent"></div>
+  <div id="results">
+    <h2>Exam Complete!</h2>
+    <div id="scoreDisplay">0 / 100</div>
+    <div id="scoreDetail"></div>
+    <div id="badgeWrap"></div>
+  </div>
+  <div class="btn-bar">
+    <button class="btn btn-submit" onclick="submitExam()">Submit Exam</button>
+    <button class="btn btn-reset" onclick="resetExam()">Reset</button>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  // Lesson 1 — Mobile Dev Overview, React Native, Expo
+  { q: "1. The process of creating software applications designed to run on mobile devices:", options: ["Web Development", "Mobile Application Development", "Desktop Development", "Game Development"], answer: 1 },
+  { q: "2. Building an application specifically for one operating system:", options: ["Cross-Platform Development", "Native Development", "Hybrid Development", "Progressive Development"], answer: 1 },
+  { q: "3. Building for multiple platforms using a shared codebase:", options: ["Native Development", "Cross-Platform Development", "Web Development", "Embedded Development"], answer: 1 },
+  { q: "4. A set of tools and services used in React Native mobile development:", options: ["Xcode", "Expo", "Android Studio", "Flutter"], answer: 1 },
+  { q: "5. Expo's cloud-based services for building and deploying mobile projects:", options: ["EAS", "CLI", "SDK", "API"], answer: 0 },
+  { q: "6. EAS stands for:", options: ["Expo App System", "Expo Application Services", "External App Services", "Expo API Suite"], answer: 1 },
+  { q: "7. Which is the FIRST step of the first-application lifecycle?", options: ["Start the development server", "Initialize an Expo project", "Run the application", "Test using an emulator"], answer: 1 },
+  { q: "8. The framework used for building cross-platform mobile interfaces and apps:", options: ["Flutter", "React Native", "Xamarin", "Ionic"], answer: 1 },
+
+  // Lesson 2 — Project Structure, JSX/TSX, Components, Styling
+  { q: "9. TypeScript adds what to JavaScript?", options: ["Faster runtime", "Static typing", "Database access", "Network protocols"], answer: 1 },
+  { q: "10. A syntax extension allowing XML/HTML-like markup in JavaScript:", options: ["JSX", "JSON", "HTMLX", "XMLS"], answer: 0 },
+  { q: "11. JSX-style markup used in TypeScript files:", options: ["JSX", "TSX", "TSY", "JSY"], answer: 1 },
+  { q: "12. A function that returns JSX/TSX describing UI elements:", options: ["Class Component", "Functional Component", "Hook", "Reducer"], answer: 1 },
+  { q: "13. Inputs passed from a parent component to configure a child component:", options: ["State", "Props", "Hooks", "Refs"], answer: 1 },
+  { q: "14. React Native component used as a basic container to organize other UI elements:", options: ["View", "Text", "Image", "Pressable"], answer: 0 },
+  { q: "15. React Native component used to display text:", options: ["View", "Text", "Image", "Label"], answer: 1 },
+  { q: "16. React Native component used to display graphics or images:", options: ["View", "Text", "Image", "Graphic"], answer: 2 },
+  { q: "17. React Native component used to create a scrollable container:", options: ["View", "ScrollView", "FlatList", "Panel"], answer: 1 },
+  { q: "18. React Native component used to handle touch or press interactions:", options: ["Button", "Pressable", "Touchable", "Clickable"], answer: 1 },
+  { q: "19. React Native tool for defining component styles:", options: ["CSS", "StyleSheet", "StyleBox", "Theme"], answer: 1 },
+  { q: "20. The main layout model used in React Native:", options: ["Grid", "Flexbox", "Table", "Float"], answer: 1 },
+
+  // Lesson 3 — Navigation & Expo Router
+  { q: "21. The principles and mechanisms that control how users move between screens:", options: ["Routing", "Mobile Navigation", "Transitioning", "Paging"], answer: 1 },
+  { q: "22. A React Native routing library built on React Navigation using file-based routing:", options: ["React Router", "Expo Router", "Navigation Stack", "App Router"], answer: 1 },
+  { q: "23. A convention where files and folders in the app directory determine routes:", options: ["Static Routing", "File-Based Routing", "Dynamic Routing", "Manual Routing"], answer: 1 },
+  { q: "24. Navigation pattern where screens are pushed and popped from a stack:", options: ["Tab Navigation", "Stack Navigation", "Drawer Navigation", "Modal Navigation"], answer: 1 },
+  { q: "25. Stack navigation follows which principle?", options: ["FIFO", "LIFO", "Random", "Priority"], answer: 1 },
+  { q: "26. Navigation pattern using persistent tabs to switch between major sections:", options: ["Stack Navigation", "Tab Navigation", "Drawer Navigation", "Modal Navigation"], answer: 1 },
+  { q: "27. Combining multiple navigators, such as a stack inside a tab:", options: ["Simple Navigation", "Nested Navigation", "Flat Navigation", "Hybrid Navigation"], answer: 1 },
+  { q: "28. Values passed as part of navigation so another screen can receive information:", options: ["State", "Props", "Route Parameters", "Context"], answer: 2 },
+  { q: "29. Routes that restrict access based on authentication or another condition:", options: ["Open Routes", "Protected Routes", "Secure Routes", "Locked Routes"], answer: 1 },
+  { q: "30. A mechanism that opens a specific screen in an app from an external link:", options: ["Deep Linking", "URL Routing", "Hyperlinking", "External Routing"], answer: 0 },
+
+  // Lesson 4 — TypeScript Fundamentals
+  { q: "31. A structure used to describe the expected shape of an object:", options: ["Class", "Interface", "Enum", "Array"], answer: 1 },
+  { q: "32. A custom name for a type or type combination:", options: ["Interface", "Type Alias", "Variable", "Constant"], answer: 1 },
+  { q: "33. Types that specify a function's parameters and return value:", options: ["Object Types", "Function Types", "Array Types", "Primitive Types"], answer: 1 },
+  { q: "34. Components designed to be used in multiple places:", options: ["Static Components", "Reusable Components", "Dynamic Components", "Global Components"], answer: 1 },
+  { q: "35. Combining smaller components to build a larger interface:", options: ["Inheritance", "Composition", "Encapsulation", "Abstraction"], answer: 1 },
+
+  // Lesson 5 — State, Props, Hooks
+  { q: "36. Data managed internally by a component that can change over time:", options: ["Props", "State", "Refs", "Context"], answer: 1 },
+  { q: "37. A hook that lets a functional component track and update local state:", options: ["useEffect", "useState", "useMemo", "useCallback"], answer: 1 },
+  { q: "38. A hook used for side effects such as data fetching and subscriptions:", options: ["useState", "useEffect", "useMemo", "useRef"], answer: 1 },
+  { q: "39. A hook that memoizes a computed value:", options: ["useState", "useEffect", "useMemo", "useCallback"], answer: 2 },
+  { q: "40. A hook that memoizes a callback function:", options: ["useState", "useEffect", "useMemo", "useCallback"], answer: 3 },
+  { q: "41. A user-defined hook function that extracts and reuses logic across components:", options: ["Built-in Hook", "Custom Hook", "Custom Component", "Utility Function"], answer: 1 },
+  { q: "42. A built-in React feature for sharing data across the component tree without prop drilling:", options: ["Redux", "Context API", "MobX", "Zustand"], answer: 1 },
+  { q: "43. State that is accessed by multiple components or screens:", options: ["Local State", "Shared State", "Static State", "Private State"], answer: 1 },
+  { q: "44. An input whose value is driven by component state:", options: ["Free Input", "Controlled Component", "Uncontrolled Input", "Static Input"], answer: 1 },
+
+  // Lesson 6 — Forms, Validation, Auth, UX
+  { q: "45. React Native component that allows users to enter text using a software keyboard:", options: ["Text", "TextInput", "Input", "Field"], answer: 1 },
+  { q: "46. Checking user input locally on the device before submission:", options: ["Server-Side Validation", "Client-Side Validation", "Database Validation", "Network Validation"], answer: 1 },
+  { q: "47. A masked input configuration intended for secure text entry:", options: ["Email Field", "Password Field", "Name Field", "Search Field"], answer: 1 },
+  { q: "48. A visual cue such as a spinner showing an operation is in progress:", options: ["Alert", "Loading Indicator", "Toast", "Banner"], answer: 1 },
+  { q: "49. Designing interfaces so they can be used with assistive technologies:", options: ["Usability", "Accessibility", "Responsiveness", "Portability"], answer: 1 },
+
+  // Lesson 7 — Expo Go Limitations & Production
+  { q: "50. A custom application binary built with the native modules required by the project:", options: ["Expo Go", "Development Build", "APK", "Production Build"], answer: 1 }
+];
+
+let answers = new Array(QUESTIONS.length).fill(null);
+let submitted = false;
+const content = document.getElementById('quizContent');
+const progressFill = document.getElementById('progressFill');
+
+function render() {
+  content.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.id = 'q' + i;
+    const qText = document.createElement('div');
+    qText.className = 'q-text';
+    qText.textContent = q.q;
+    div.appendChild(qText);
+    const opts = document.createElement('div');
+    opts.className = 'options';
+    q.options.forEach((opt, oi) => {
+      const label = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'radio'; input.name = 'q' + i; input.value = oi;
+      input.onchange = () => { answers[i] = oi; updateProgress(); };
+      label.appendChild(input); label.appendChild(document.createTextNode(opt));
+      opts.appendChild(label);
+    });
+    div.appendChild(opts);
+    const fb = document.createElement('div');
+    fb.className = 'feedback'; fb.id = 'fb' + i;
+    div.appendChild(fb);
+    content.appendChild(div);
+  });
+}
+
+function updateProgress() {
+  const answered = answers.filter(a => a !== null).length;
+  progressFill.style.width = (answered / QUESTIONS.length * 100) + '%';
+}
+
+function submitExam() {
+  submitted = true;
+  let score = 0;
+  QUESTIONS.forEach((q, i) => {
+    const div = document.getElementById('q' + i);
+    const fb = document.getElementById('fb' + i);
+    const correct = answers[i] === q.answer;
+    div.classList.remove('correct', 'wrong');
+    fb.classList.remove('show', 'correct', 'wrong');
+    if (correct) {
+      score += 2;
+      div.classList.add('correct');
+      fb.classList.add('show', 'correct');
+      fb.textContent = '✓ Correct (2/2)';
+    } else {
+      div.classList.add('wrong');
+      fb.classList.add('show', 'wrong');
+      fb.textContent = '✗ Wrong (0/2) — Correct: ' + q.options[q.answer];
+    }
+  });
+  const pct = Math.round(score / 100 * 100);
+  document.getElementById('scoreDisplay').textContent = score + ' / 100';
+  document.getElementById('scoreDetail').innerHTML = '<strong>Percentage: ' + pct + '%</strong>';
+  const bw = document.getElementById('badgeWrap'); bw.innerHTML = '';
+  const badge = document.createElement('span');
+  badge.className = 'badge ' + (pct >= 75 ? 'pass' : 'fail');
+  badge.textContent = pct >= 75 ? '✓ PASSED' : '✗ FAILED (need 75%)';
+  bw.appendChild(badge);
+  const r = document.getElementById('results');
+  r.classList.add('show'); r.scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetExam() {
+  if (!confirm('Reset all answers?')) return;
+  answers = new Array(QUESTIONS.length).fill(null);
+  submitted = false;
+  document.getElementById('results').classList.remove('show');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.question').forEach(q => q.classList.remove('correct', 'wrong'));
+  document.querySelectorAll('.feedback').forEach(f => f.classList.remove('show', 'correct', 'wrong'));
+  progressFill.style.width = '0%';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITPROF EL 5 — Game Development Exam</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #1e3c72, #2a5298); min-height: 100vh; padding: 20px; color: #333; }
+  .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); overflow: hidden; }
+  header { background: linear-gradient(135deg, #2c3e50, #4a6572); color: #fff; padding: 25px; text-align: center; }
+  header h1 { font-size: 1.4em; margin-bottom: 5px; }
+  header p { font-size: 0.9em; opacity: 0.9; }
+  .progress-bar { height: 6px; background: #ddd; position: sticky; top: 0; z-index: 100; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); width: 0%; transition: width 0.3s; }
+  .content { padding: 30px; }
+  .section-title { background: #2c3e50; color: #fff; padding: 12px 18px; border-radius: 6px; margin: 25px 0 15px; font-size: 1.05em; }
+  .section-title:first-child { margin-top: 0; }
+  .question { background: #f8f9fa; border-left: 4px solid #3498db; padding: 15px 18px; margin-bottom: 15px; border-radius: 6px; }
+  .question.correct { background: #d4edda; border-left-color: #28a745; }
+  .question.wrong { background: #f8d7da; border-left-color: #dc3545; }
+  .q-text { font-weight: 600; margin-bottom: 10px; line-height: 1.6; }
+  .options label { display: block; padding: 8px 12px; margin: 5px 0; border-radius: 5px; cursor: pointer; border: 1px solid #e0e0e0; background: #fff; transition: background 0.15s; }
+  .options label:hover { background: #eaf4fc; }
+  .options input { margin-right: 8px; }
+  input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; margin-top: 5px; }
+  input[type="text"]:focus { outline: none; border-color: #3498db; }
+  .feedback { margin-top: 8px; font-size: 0.9em; padding: 6px 10px; border-radius: 4px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: #d4edda; color: #155724; }
+  .feedback.wrong { background: #f8d7da; color: #721c24; }
+  .underline-options span { display: inline-block; padding: 5px 12px; margin: 4px 6px 4px 0; border: 2px solid #3498db; border-radius: 5px; cursor: pointer; text-decoration: underline; text-decoration-thickness: 2px; background: #fff; transition: all 0.15s; }
+  .underline-options span:hover { background: #eaf4fc; }
+  .underline-options span.selected { background: #3498db; color: #fff; text-decoration-color: #fff; }
+  .puzzle-wrap { overflow-x: auto; margin: 15px 0; text-align: center; }
+  .puzzle-grid { display: inline-grid; gap: 2px; background: #2c3e50; padding: 6px; border-radius: 6px; }
+  .puzzle-cell { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #fff; font-weight: 700; font-size: 0.9em; border-radius: 3px; cursor: pointer; user-select: none; transition: background 0.15s; }
+  .puzzle-cell:hover { background: #eaf4fc; }
+  .puzzle-cell.selected { background: #f39c12; color: #fff; }
+  .puzzle-cell.found { background: #27ae60; color: #fff; }
+  .puzzle-words { margin: 10px 0; line-height: 1.9; }
+  .puzzle-words span { display: inline-block; padding: 3px 10px; margin: 3px; background: #ecf0f1; border-radius: 4px; font-weight: 600; font-size: 0.9em; }
+  .puzzle-words span.found { background: #27ae60; color: #fff; text-decoration: line-through; }
+  .btn-bar { position: sticky; bottom: 0; background: #fff; padding: 18px; border-top: 2px solid #eee; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button.btn { padding: 12px 28px; border: none; border-radius: 6px; font-size: 1em; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+  button.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .btn-submit { background: #27ae60; color: #fff; }
+  .btn-reset { background: #e74c3c; color: #fff; }
+  #results { display: none; background: linear-gradient(135deg, #2c3e50, #4a6572); color: #fff; padding: 30px; text-align: center; margin: 20px; border-radius: 10px; }
+  #results.show { display: block; }
+  #results h2 { font-size: 1.8em; margin-bottom: 10px; }
+  #scoreDisplay { font-size: 3em; font-weight: 700; margin: 15px 0; }
+  #scoreDetail { font-size: 1em; opacity: 0.95; line-height: 1.8; }
+  .badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; margin-top: 10px; font-weight: 600; }
+  .badge.pass { background: #27ae60; }
+  .badge.fail { background: #e74c3c; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>ITPROF EL 5 — Advanced Game Development</h1>
+    <p>RPG Maker MV Exam | Total: 100 Points</p>
+  </header>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="content" id="quizContent"></div>
+  <div id="results">
+    <h2>Exam Complete!</h2>
+    <div id="scoreDisplay">0 / 100</div>
+    <div id="scoreDetail"></div>
+    <div id="badgeWrap"></div>
+  </div>
+  <div class="btn-bar">
+    <button class="btn btn-submit" onclick="submitExam()">Submit Exam</button>
+    <button class="btn btn-reset" onclick="resetExam()">Reset</button>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "1. What format are games created with RPG Maker MV rendered in?", options: ["EXE", "HTML5", "Java", "Flash"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "2. What is the increased game resolution in RPG Maker MV?", options: ["544x476", "816x624", "1280x768", "1920x1080"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "3. How many tiles can be used in Region Editor Mode (maximum)?", options: ["63", "100", "255", "500"], answer: 2 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "4. Which tab manages messages traditionally changed via scripts?", options: ["[Terms]", "[System]", "[Types]", "[Items]"], answer: 0 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "5. What key opens Developer Tools during test play?", options: ["F5", "F8", "F9", "F2"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "6. What key opens the Debug Screen during Playtest?", options: ["F5", "F8", "F9", "F3"], answer: 2 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "7. Maximum number of save files in RPG Maker MV?", options: ["16", "20", "24", "10"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "8. Which file can be edited to change fonts in the game?", options: ["/fonts/gamefont.css", "/css/style.css", "/fonts/font.css", "/data/fonts.css"], answer: 0 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "9. Which button is used for Dash on the keyboard?", options: ["Ctrl", "Shift", "Alt", "Tab"], answer: 1 },
+  { part: "PART I: MULTIPLE CHOICE (2 pts each)", type: "mc", q: "10. What happens when all party members' HP reaches 0?", options: ["Game restarts", "Game Over", "Auto-revive", "Return to town"], answer: 1 },
+
+  { part: "PART II: TRUE OR FALSE (1 pt each)", type: "tf", q: "11. Games created using RPG Maker MV can only be played by users who have the tool.", answer: false },
+  { part: "PART II: TRUE OR FALSE (1 pt each)", type: "tf", q: "12. The maximum number of database entries can have an additional 1000 entries.", answer: true },
+  { part: "PART II: TRUE OR FALSE (1 pt each)", type: "tf", q: "13. Equipment types can be increased and decreased from [Types].", answer: true },
+  { part: "PART II: TRUE OR FALSE (1 pt each)", type: "tf", q: "14. In Side-View Battle, actors are NOT displayed in the Battle Screen.", answer: false },
+  { part: "PART II: TRUE OR FALSE (1 pt each)", type: "tf", q: "15. The game window size can be changed by dragging.", answer: true },
+  { part: "PART II: TRUE OR FALSE (1 pt each)", type: "tf", q: "16. Music stops playing when switching to the battle screen if the map and battle BGM is the same.", answer: false },
+  { part: "PART II: TRUE OR FALSE (1 pt each)", type: "tf", q: "17. The game's title is stored in the save file.", answer: true },
+  { part: "PART II: TRUE OR FALSE (1 pt each)", type: "tf", q: "18. You can play the game in your browser by uploading the project folder to a web server.", answer: true },
+  { part: "PART II: TRUE OR FALSE (1 pt each)", type: "tf", q: "19. Internet connection is NOT required to perform network authentication.", answer: false },
+  { part: "PART II: TRUE OR FALSE (1 pt each)", type: "tf", q: "20. Maps can be saved as images from the Map List context menu.", answer: true },
+
+  { part: "PART III: UNDERLINE — Choose the correct word/phrase (2 pts each)", type: "underline", q: "21. RPG Maker MV games are rendered in HTML5 / EXE / Java format.", options: ["HTML5", "EXE", "Java"], answer: 0 },
+  { part: "PART III: UNDERLINE — Choose the correct word/phrase (2 pts each)", type: "underline", q: "22. The map resolution was increased to 816x624 / 1280x768 / 1920x1080.", options: ["816x624", "1280x768", "1920x1080"], answer: 0 },
+  { part: "PART III: UNDERLINE — Choose the correct word/phrase (2 pts each)", type: "underline", q: "23. Maximum number of tiles changed from 63 to 255 / 100 / 500.", options: ["255", "100", "500"], answer: 0 },
+  { part: "PART III: UNDERLINE — Choose the correct word/phrase (2 pts each)", type: "underline", q: "24. Maximum number of database entries is 2000 / 1000 / 500.", options: ["2000", "1000", "500"], answer: 0 },
+  { part: "PART III: UNDERLINE — Choose the correct word/phrase (2 pts each)", type: "underline", q: "25. Press F8 / F9 / F5 to open Developer Tools during Playtest.", options: ["F8", "F9", "F5"], answer: 0 },
+  { part: "PART III: UNDERLINE — Choose the correct word/phrase (2 pts each)", type: "underline", q: "26. Press F9 / F8 / F3 to open the Debug Screen during Playtest.", options: ["F9", "F8", "F3"], answer: 0 },
+  { part: "PART III: UNDERLINE — Choose the correct word/phrase (2 pts each)", type: "underline", q: "27. Maximum number of save files increased from 16 to 20 / 24 / 30.", options: ["20", "24", "30"], answer: 0 },
+  { part: "PART III: UNDERLINE — Choose the correct word/phrase (2 pts each)", type: "underline", q: "28. Event Command choices limit was raised from 4 to 6 / 5 / 8.", options: ["6", "5", "8"], answer: 0 },
+  { part: "PART III: UNDERLINE — Choose the correct word/phrase (2 pts each)", type: "underline", q: "29. Minimum RAM requirement is 2GB / 1GB / 4GB.", options: ["2GB", "1GB", "4GB"], answer: 0 },
+  { part: "PART III: UNDERLINE — Choose the correct word/phrase (2 pts each)", type: "underline", q: "30. Sound Test is divided into BGM, BGS, ME, SE / BGM, BGS, SFX, ME / BGM, SE, ME, VOICE.", options: ["BGM, BGS, ME, SE", "BGM, BGS, SFX, ME", "BGM, SE, ME, VOICE"], answer: 0 },
+
+  { part: "PART IV: ENUMERATION (1 pt each)", type: "text", q: "31-38. Enumerate the 8 Basic Editor Controls / Main Window components. (8 pts) — Separate with commas.", answer: ["menu bar", "toolbar", "tile palette", "map list", "map view", "status bar"], multi: true, points: 8 },
+  { part: "PART IV: ENUMERATION (1 pt each)", type: "text", q: "39-46. Enumerate the 8 Menu Bars in RPG Maker MV. (8 pts) — Separate with commas.", answer: ["file", "edit", "mode", "draw", "scale", "tool", "game", "help"], multi: true, points: 8 },
+
+  { part: "PART V: WORD PUZZLE (2 pts each)", type: "puzzle", q: "47. Find the 10 hidden words in the puzzle below. Click the first and last letter of each word to mark it. (2 pts each)", words: ["HTML5", "DATABASE", "PLUGIN", "EVENT", "MAP", "TOOLBAR", "SKILL", "SAVE", "FONT", "BATTLE"] }
+];
+
+const PUZZLE_GRID = [
+  ['H','T','M','L','5','X','P','L','U','G','I','N'],
+  ['D','A','T','A','B','A','S','E','Q','Z','K','W'],
+  ['E','V','E','N','T','R','Y','U','I','O','P','A'],
+  ['M','A','P','X','C','V','B','N','M','Q','W','E'],
+  ['T','O','O','L','B','A','R','Z','X','C','V','B'],
+  ['S','K','I','L','L','Q','W','E','R','T','Y','U'],
+  ['S','A','V','E','X','C','V','B','N','M','Q','W'],
+  ['F','O','N','T','Z','X','C','V','B','N','M','Q'],
+  ['B','A','T','T','L','E','X','C','V','B','N','M'],
+  ['Q','W','E','R','T','Y','U','I','O','P','A','S'],
+  ['Z','X','C','V','B','N','M','Q','W','E','R','T'],
+  ['Y','U','I','O','P','A','S','D','F','G','H','J']
+];
+
+let answers = new Array(QUESTIONS.length).fill(null);
+let submitted = false;
+let puzzleFound = [];
+let puzzleFirstCell = null;
+const content = document.getElementById('quizContent');
+const progressFill = document.getElementById('progressFill');
+
+function render() {
+  content.innerHTML = '';
+  let currentPart = '';
+  QUESTIONS.forEach((q, i) => {
+    if (q.part !== currentPart) {
+      currentPart = q.part;
+      const t = document.createElement('div');
+      t.className = 'section-title';
+      t.textContent = currentPart;
+      content.appendChild(t);
+    }
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.id = 'q' + i;
+    const qText = document.createElement('div');
+    qText.className = 'q-text';
+    qText.textContent = q.q;
+    div.appendChild(qText);
+
+    if (q.type === 'mc') {
+      const opts = document.createElement('div');
+      opts.className = 'options';
+      q.options.forEach((opt, oi) => {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'radio'; input.name = 'q' + i; input.value = oi;
+        input.onchange = () => { answers[i] = oi; updateProgress(); };
+        label.appendChild(input); label.appendChild(document.createTextNode(opt));
+        opts.appendChild(label);
+      });
+      div.appendChild(opts);
+    } else if (q.type === 'tf') {
+      const opts = document.createElement('div');
+      opts.className = 'options';
+      ['True', 'False'].forEach((opt, oi) => {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'radio'; input.name = 'q' + i; input.value = oi;
+        input.onchange = () => { answers[i] = (oi === 0); updateProgress(); };
+        label.appendChild(input); label.appendChild(document.createTextNode(opt));
+        opts.appendChild(label);
+      });
+      div.appendChild(opts);
+    } else if (q.type === 'underline') {
+      const wrap = document.createElement('div');
+      wrap.className = 'underline-options';
+      q.options.forEach((opt, oi) => {
+        const span = document.createElement('span');
+        span.textContent = opt;
+        span.onclick = () => {
+          wrap.querySelectorAll('span').forEach(s => s.classList.remove('selected'));
+          span.classList.add('selected');
+          answers[i] = oi; updateProgress();
+        };
+        wrap.appendChild(span);
+      });
+      div.appendChild(wrap);
+    } else if (q.type === 'text') {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Type your answer here (separate with commas)...';
+      input.oninput = () => { answers[i] = input.value; updateProgress(); };
+      div.appendChild(input);
+    } else if (q.type === 'puzzle') {
+      renderPuzzle(div, q);
+    }
+    const fb = document.createElement('div');
+    fb.className = 'feedback'; fb.id = 'fb' + i;
+    div.appendChild(fb);
+    content.appendChild(div);
+  });
+}
+
+function renderPuzzle(container, q) {
+  const wrap = document.createElement('div');
+  wrap.className = 'puzzle-wrap';
+  const grid = document.createElement('div');
+  grid.className = 'puzzle-grid';
+  grid.style.gridTemplateColumns = 'repeat(12, 32px)';
+  for (let r = 0; r < 12; r++) for (let c = 0; c < 12; c++) {
+    const cell = document.createElement('div');
+    cell.className = 'puzzle-cell';
+    cell.textContent = PUZZLE_GRID[r][c];
+    cell.dataset.key = r + '-' + c;
+    cell.dataset.r = r; cell.dataset.c = c;
+    cell.onclick = () => handlePuzzleClick(r, c, cell);
+    grid.appendChild(cell);
+  }
+  wrap.appendChild(grid);
+  container.appendChild(wrap);
+  const wordList = document.createElement('div');
+  wordList.className = 'puzzle-words'; wordList.id = 'wordList';
+  q.words.forEach(w => {
+    const sp = document.createElement('span');
+    sp.textContent = w; sp.dataset.word = w;
+    wordList.appendChild(sp);
+  });
+  container.appendChild(wordList);
+}
+
+function handlePuzzleClick(r, c, cell) {
+  if (submitted) return;
+  if (!puzzleFirstCell) {
+    puzzleFirstCell = { r, c, key: r + '-' + c };
+    cell.classList.add('selected');
+    return;
+  }
+  const start = puzzleFirstCell;
+  if (start.key === (r + '-' + c)) {
+    cell.classList.remove('selected');
+    puzzleFirstCell = null;
+    return;
+  }
+  if (start.r !== r && start.c !== c) {
+    document.querySelectorAll('.puzzle-cell.selected').forEach(el => el.classList.remove('selected'));
+    puzzleFirstCell = { r, c, key: r + '-' + c };
+    cell.classList.add('selected');
+    return;
+  }
+  let str = '', cells = [];
+  if (start.r === r) {
+    const minC = Math.min(start.c, c), maxC = Math.max(start.c, c);
+    for (let cc = minC; cc <= maxC; cc++) {
+      str += PUZZLE_GRID[r][cc];
+      cells.push(document.querySelector(`.puzzle-cell[data-key="${r}-${cc}"]`));
+    }
+  } else {
+    const minR = Math.min(start.r, r), maxR = Math.max(start.r, r);
+    for (let rr = minR; rr <= maxR; rr++) {
+      str += PUZZLE_GRID[rr][c];
+      cells.push(document.querySelector(`.puzzle-cell[data-key="${rr}-${c}"]`));
+    }
+  }
+  const reversed = str.split('').reverse().join('');
+  const q = QUESTIONS.find(x => x.type === 'puzzle');
+  const matched = q.words.find(w => !puzzleFound.includes(w) && (w === str || w === reversed));
+  if (matched) {
+    puzzleFound.push(matched);
+    cells.forEach(el => { el.classList.remove('selected'); el.classList.add('found'); });
+    document.querySelectorAll('#wordList span').forEach(sp => {
+      if (sp.dataset.word === matched) sp.classList.add('found');
+    });
+    const idx = QUESTIONS.indexOf(q);
+    answers[idx] = puzzleFound.slice();
+    updateProgress();
+  } else {
+    cells.forEach(el => el.classList.remove('selected'));
+  }
+  puzzleFirstCell = null;
+}
+
+function updateProgress() {
+  let answered = 0;
+  QUESTIONS.forEach((q, i) => {
+    if (q.type === 'puzzle') { if (puzzleFound.length > 0) answered++; }
+    else if (q.type === 'text' && q.multi) { if (answers[i] && answers[i].trim().length > 0) answered++; }
+    else if (answers[i] !== null && answers[i] !== '') answered++;
+  });
+  progressFill.style.width = (answered / QUESTIONS.length * 100) + '%';
+}
+
+function normalize(str) { return String(str).toLowerCase().trim().replace(/[\[\]]/g, '').replace(/\s+/g, ' '); }
+
+function checkAnswer(q, userAns) {
+  if (q.type === 'mc' || q.type === 'tf' || q.type === 'underline') return userAns === q.answer;
+  if (q.type === 'puzzle') return (userAns || []).length;
+  if (q.type === 'text') {
+    const user = normalize(userAns);
+    if (q.multi) {
+      const parts = user.split(',').map(s => s.trim()).filter(Boolean);
+      const matched = new Set(); let hits = 0;
+      parts.forEach(p => {
+        q.answer.forEach((a, idx) => {
+          if (!matched.has(idx) && (p === a || p.includes(a) || a.includes(p))) { matched.add(idx); hits++; }
+        });
+      });
+      return hits;
+    }
+    return q.answer.some(a => user === a || user.includes(a));
+  }
+  return false;
+}
+
+function getPoints(q, userAns) {
+  if (q.type === 'mc' || q.type === 'underline') return checkAnswer(q, userAns) ? 2 : 0;
+  if (q.type === 'tf') return checkAnswer(q, userAns) ? 1 : 0;
+  if (q.type === 'puzzle') return (userAns || []).length * 2;
+  if (q.type === 'text') return q.multi ? checkAnswer(q, userAns) : (checkAnswer(q, userAns) ? 2 : 0);
+  return 0;
+}
+function getMaxPoints(q) {
+  if (q.type === 'mc' || q.type === 'underline') return 2;
+  if (q.type === 'tf') return 1;
+  if (q.type === 'puzzle') return q.words.length * 2;
+  if (q.type === 'text') return q.multi ? q.points : 2;
+  return 0;
+}
+
+function submitExam() {
+  submitted = true;
+  let totalScore = 0, maxScore = 0, partScores = {};
+  QUESTIONS.forEach((q, i) => {
+    const div = document.getElementById('q' + i);
+    const fb = document.getElementById('fb' + i);
+    const pts = getPoints(q, answers[i]);
+    const maxPts = getMaxPoints(q);
+    totalScore += pts; maxScore += maxPts;
+    if (!partScores[q.part]) partScores[q.part] = { earned: 0, max: 0 };
+    partScores[q.part].earned += pts; partScores[q.part].max += maxPts;
+    div.classList.remove('correct', 'wrong');
+    fb.classList.remove('show', 'correct', 'wrong');
+    let correctText = '';
+    if (q.type === 'mc' || q.type === 'underline') correctText = q.options[q.answer];
+    else if (q.type === 'tf') correctText = q.answer ? 'True' : 'False';
+    else if (q.type === 'text') correctText = q.answer.join(', ');
+    else if (q.type === 'puzzle') correctText = q.words.join(', ');
+    if (pts === maxPts) {
+      div.classList.add('correct'); fb.classList.add('show', 'correct');
+      fb.textContent = '✓ Correct (' + pts + '/' + maxPts + ')';
+    } else if (pts > 0) {
+      div.classList.add('wrong'); fb.classList.add('show', 'wrong');
+      fb.textContent = '◐ Partial (' + pts + '/' + maxPts + ') — Correct: ' + correctText;
+    } else {
+      div.classList.add('wrong'); fb.classList.add('show', 'wrong');
+      fb.textContent = '✗ Wrong (' + pts + '/' + maxPts + ') — Correct: ' + correctText;
+    }
+  });
+  const pct = Math.round(totalScore / maxScore * 100);
+  document.getElementById('scoreDisplay').textContent = totalScore + ' / ' + maxScore;
+  let detail = '<strong>Percentage: ' + pct + '%</strong><br><br><div style="text-align:left;display:inline-block;">';
+  for (const p in partScores) detail += p + ': ' + partScores[p].earned + ' / ' + partScores[p].max + '<br>';
+  detail += '</div>';
+  document.getElementById('scoreDetail').innerHTML = detail;
+  const bw = document.getElementById('badgeWrap'); bw.innerHTML = '';
+  const badge = document.createElement('span');
+  badge.className = 'badge ' + (pct >= 75 ? 'pass' : 'fail');
+  badge.textContent = pct >= 75 ? '✓ PASSED' : '✗ FAILED (need 75%)';
+  bw.appendChild(badge);
+  const r = document.getElementById('results');
+  r.classList.add('show'); r.scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetExam() {
+  if (!confirm('Reset all answers?')) return;
+  answers = new Array(QUESTIONS.length).fill(null);
+  submitted = false; puzzleFound = []; puzzleFirstCell = null;
+  document.getElementById('results').classList.remove('show');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('input[type="text"]').forEach(t => t.value = '');
+  document.querySelectorAll('.question').forEach(q => q.classList.remove('correct', 'wrong'));
+  document.querySelectorAll('.feedback').forEach(f => f.classList.remove('show', 'correct', 'wrong'));
+  document.querySelectorAll('.puzzle-cell').forEach(c => c.classList.remove('selected', 'found'));
+  document.querySelectorAll('#wordList span').forEach(s => s.classList.remove('found'));
+  document.querySelectorAll('.underline-options span').forEach(s => s.classList.remove('selected'));
+  progressFill.style.width = '0%';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+render();
+</script>
+</body>
+</html>

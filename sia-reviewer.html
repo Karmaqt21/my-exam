@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIA413 — System Integration & Architecture Exam</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #0d47a1, #1976d2); min-height: 100vh; padding: 20px; color: #333; }
+  .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); overflow: hidden; }
+  header { background: linear-gradient(135deg, #0d47a1, #1565c0); color: #fff; padding: 25px; text-align: center; }
+  header h1 { font-size: 1.4em; margin-bottom: 5px; }
+  header p { font-size: 0.9em; opacity: 0.9; }
+  .progress-bar { height: 6px; background: #ddd; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); width: 0%; transition: width 0.3s; }
+  .content { padding: 30px; }
+  .question { background: #f8f9fa; border-left: 4px solid #1976d2; padding: 15px 18px; margin-bottom: 12px; border-radius: 6px; }
+  .question.correct { background: #d4edda; border-left-color: #28a745; }
+  .question.wrong { background: #f8d7da; border-left-color: #dc3545; }
+  .q-text { font-weight: 600; margin-bottom: 10px; line-height: 1.6; }
+  .options label { display: block; padding: 8px 12px; margin: 5px 0; border-radius: 5px; cursor: pointer; border: 1px solid #e0e0e0; background: #fff; transition: background 0.15s; }
+  .options label:hover { background: #e3f2fd; }
+  .options input { margin-right: 8px; }
+  .feedback { margin-top: 8px; font-size: 0.9em; padding: 6px 10px; border-radius: 4px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: #d4edda; color: #155724; }
+  .feedback.wrong { background: #f8d7da; color: #721c24; }
+  .btn-bar { position: sticky; bottom: 0; background: #fff; padding: 18px; border-top: 2px solid #eee; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button.btn { padding: 12px 28px; border: none; border-radius: 6px; font-size: 1em; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+  button.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .btn-submit { background: #27ae60; color: #fff; }
+  .btn-reset { background: #e74c3c; color: #fff; }
+  #results { display: none; background: linear-gradient(135deg, #0d47a1, #1565c0); color: #fff; padding: 30px; text-align: center; margin: 20px; border-radius: 10px; }
+  #results.show { display: block; }
+  #results h2 { font-size: 1.8em; margin-bottom: 10px; }
+  #scoreDisplay { font-size: 3em; font-weight: 700; margin: 15px 0; }
+  #scoreDetail { font-size: 1em; opacity: 0.95; line-height: 1.8; }
+  .badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; margin-top: 10px; font-weight: 600; }
+  .badge.pass { background: #27ae60; }
+  .badge.fail { background: #e74c3c; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>SIA413 — System Integration and Architecture</h1>
+    <p>Comprehensive Exam | 50 Items × 2 pts = 100 Points</p>
+  </header>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="content" id="quizContent"></div>
+  <div id="results">
+    <h2>Exam Complete!</h2>
+    <div id="scoreDisplay">0 / 100</div>
+    <div id="scoreDetail"></div>
+    <div id="badgeWrap"></div>
+  </div>
+  <div class="btn-bar">
+    <button class="btn btn-submit" onclick="submitExam()">Submit Exam</button>
+    <button class="btn btn-reset" onclick="resetExam()">Reset</button>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  // Lesson 1 — System Integration
+  { q: "1. Allowing a heterogeneous Information System to communicate and share data seamlessly is called:", options: ["System Architecture", "System Integration", "System Deployment", "System Analysis"], answer: 1 },
+  { q: "2. EAI stands for:", options: ["Enterprise Application Integration", "Enterprise Architecture Interface", "External Application Integration", "Enterprise API Integration"], answer: 0 },
+  { q: "3. Compartmentalized operating units isolated from their environment are called:", options: ["Layers", "Modules", "Silos", "Clusters"], answer: 2 },
+  { q: "4. Teams grouped by function that operate separately without cross-collaboration are:", options: ["Vertical Silos", "Horizontal Silos", "Functional Silos", "Operational Silos"], answer: 2 },
+  { q: "5. Classification of organizations into departments like Accounting and HR reflects:", options: ["Vertical Silos", "Horizontal Silos", "Functional Silos", "Strategic Silos"], answer: 1 },
+  { q: "6. Dividing roles into hierarchical layers from strategic planning to operation control reflects:", options: ["Vertical Silos", "Horizontal Silos", "Functional Silos", "Tactical Silos"], answer: 0 },
+  { q: "7. Which is NOT a level of management supported by IS?", options: ["Strategic", "Middle", "Operational", "Experimental"], answer: 3 },
+  { q: "8. Integrating subsystems according to their functionality by creating functional entities:", options: ["Vertical Integration", "Horizontal Integration", "Star Integration", "Diagonal Integration"], answer: 0 },
+  { q: "9. Also known as 'spaghetti integration' where each system is interconnected to every other subsystem:", options: ["Vertical Integration", "Horizontal Integration", "Star Integration", "Common Data Format"], answer: 2 },
+  { q: "10. Integration method using a specialized subsystem dedicated to communication between other subsystems:", options: ["ESB", "Star Integration", "Vertical Integration", "Point-to-Point"], answer: 0 },
+  { q: "11. ESB stands for:", options: ["Enterprise Service Bus", "Enterprise System Bridge", "External Service Bus", "Enterprise Software Base"], answer: 0 },
+  { q: "12. To avoid every adapter converting data to every other application's format, EAI systems use:", options: ["Common Data Format", "Direct Mapping", "Data Duplication", "Manual Conversion"], answer: 0 },
+  { q: "13. The conceptual model that defines the structure, behavior, and views of a system:", options: ["System Integration", "System Architecture", "System Deployment", "System Design"], answer: 1 },
+  { q: "14. Formal languages used to describe system architecture are collectively called:", options: ["ADLs", "IDEs", "SDKs", "APIs"], answer: 0 },
+  { q: "15. ADL stands for:", options: ["Architecture Description Language", "Application Design Language", "Automated Data Layer", "Architecture Design Logic"], answer: 0 },
+
+  // Lesson 1 — Life Cycle
+  { q: "16. Which is the FIRST stage of the System Integration Life Cycle?", options: ["Feasibility Analysis", "Requirements Definition and Specification", "System Architecture Development", "Systems Design"], answer: 1 },
+  { q: "17. The phase whose objective is to develop the long-range systems plan:", options: ["Systems Planning", "Project Initiation", "Architecture Definition", "Analysis"], answer: 0 },
+  { q: "18. The first phase in undertaking any systems project identified in the Long-Range Systems Plan:", options: ["Systems Planning", "Project Initiation", "Architecture Definition", "Design"], answer: 1 },
+  { q: "19. The phase that specifies HOW the application software will accomplish what the system will do:", options: ["Analysis", "Design", "Development", "Implementation"], answer: 1 },
+  { q: "20. The phase that constructs and tests all system components:", options: ["Design", "Development", "Implementation", "Facilities Engineering"], answer: 1 },
+  { q: "21. The phase that creates the physical environment including data centers and hardware installation:", options: ["Development", "Facilities Engineering", "Implementation", "Analysis"], answer: 1 },
+  { q: "22. The phase that makes the new system operational and trains users:", options: ["Development", "Implementation", "Post-Implementation", "Design"], answer: 1 },
+  { q: "23. The phase that maintains and enhances the system to meet ongoing user needs:", options: ["Implementation", "Post-Implementation Support", "Development", "Evaluation"], answer: 1 },
+  { q: "24. Which phase specifies in detail WHAT the system will do?", options: ["Analysis", "Design", "Development", "Planning"], answer: 0 },
+
+  // Lesson 1 — Profession
+  { q: "25. Professionals who design, implement, and maintain databases and complex computer systems:", options: ["Software Developers", "Systems Architects", "Database Admins", "Network Engineers"], answer: 1 },
+  { q: "26. Which certification is preferred for Systems Architects according to the reviewer?", options: ["CCNA or CCNP", "ITIL or PMP", "AWS or Azure", "CompTIA A+"], answer: 1 },
+  { q: "27. Median salary for systems architects in 2016 per the reviewer:", options: ["$56,430", "$106,430", "$156,430", "$86,430"], answer: 1 },
+
+  // Lesson 2 — Business Architecture
+  { q: "28. A structured view of how parts fit together, like a blueprint:", options: ["Process", "Architecture", "Framework", "Model"], answer: 1 },
+  { q: "29. Business Architecture primarily focuses on:", options: ["WHAT the business needs to do", "HOW the business does it", "WHEN changes occur", "WHO is responsible"], answer: 0 },
+  { q: "30. In the memory tip, solution design answers:", options: ["WHAT", "HOW", "WHY", "WHEN"], answer: 1 },
+  { q: "31. Something the organization is able to do (e.g., Customer Service, Recruitment):", options: ["Process", "Capability", "Value Stream", "Function"], answer: 1 },
+  { q: "32. Shows how value is delivered from beginning to end:", options: ["Capability Map", "Value Stream", "Process Flow", "Roadmap"], answer: 1 },
+  { q: "33. The POPIT holistic approach includes People, Organisation, Processes, Information, and:", options: ["Technology", "Tools", "Teams", "Training"], answer: 0 },
+  { q: "34. In the Strategy → Architecture → Execution flow, what does Business Architecture do?", options: ["Sets the vision", "Translates strategy into capabilities", "Executes changes", "Measures results"], answer: 1 },
+  { q: "35. Which is NOT a Business Architecture scenario?", options: ["Mergers and acquisitions", "New product deployment", "Regulatory compliance", "Compiling source code"], answer: 3 },
+
+  // Lesson 3 — SOA Governance & REST
+  { q: "36. The set of rules, policies, roles, and processes used to manage services in SOA:", options: ["SOA Governance", "SOA Framework", "SOA Management", "SOA Lifecycle"], answer: 0 },
+  { q: "37. Which is NOT a phase of the SOA Governance Lifecycle?", options: ["Plan", "Define", "Enable", "Compile"], answer: 3 },
+  { q: "38. API stands for:", options: ["Application Programming Interface", "Applied Program Integration", "Automated Process Interface", "Application Process Integration"], answer: 0 },
+  { q: "39. REST stands for:", options: ["Remote State Transfer", "Representational State Transfer", "Resource State Transfer", "Representational System Transfer"], answer: 1 },
+  { q: "40. HTTP method used to retrieve data:", options: ["GET", "POST", "PUT", "DELETE"], answer: 0 },
+  { q: "41. HTTP method used to create new data:", options: ["GET", "POST", "PUT", "DELETE"], answer: 1 },
+  { q: "42. HTTP method used to update or replace data:", options: ["GET", "POST", "PUT", "DELETE"], answer: 2 },
+  { q: "43. A standard format for describing an API:", options: ["Swagger", "OpenAPI", "REST", "SOAP"], answer: 1 },
+  { q: "44. A popular set of tools used to work with OpenAPI:", options: ["Swagger", "Postman", "Insomnia", "cURL"], answer: 0 },
+  { q: "45. Maintaining different versions of an API as it changes is called:", options: ["API Governance", "API Versioning", "API Migration", "API Forking"], answer: 1 },
+
+  // Lesson 4 — Microservices & ESB
+  { q: "46. Architecture where major functions are packaged and deployed as one application:", options: ["Microservices", "Monolithic", "Serverless", "Distributed"], answer: 1 },
+  { q: "47. Architectural approach where an application is composed of multiple independently deployable services:", options: ["Monolithic", "Microservices", "Layered", "Client-Server"], answer: 1 },
+  { q: "48. Messaging where a producer sends a message to a queue for a single consumer:", options: ["Publish/Subscribe", "Point-to-Point", "Broadcast", "Multicast"], answer: 1 },
+  { q: "49. Messaging where a producer publishes an event to a topic with multiple subscribers:", options: ["Point-to-Point", "Publish/Subscribe", "Unicast", "Anycast"], answer: 1 },
+  { q: "50. A centralized integration tool used to route, transform, and standardize messages between systems:", options: ["API Gateway", "ESB", "Message Broker", "Load Balancer"], answer: 1 }
+];
+
+let answers = new Array(QUESTIONS.length).fill(null);
+let submitted = false;
+const content = document.getElementById('quizContent');
+const progressFill = document.getElementById('progressFill');
+
+function render() {
+  content.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.id = 'q' + i;
+    const qText = document.createElement('div');
+    qText.className = 'q-text';
+    qText.textContent = q.q;
+    div.appendChild(qText);
+    const opts = document.createElement('div');
+    opts.className = 'options';
+    q.options.forEach((opt, oi) => {
+      const label = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'radio'; input.name = 'q' + i; input.value = oi;
+      input.onchange = () => { answers[i] = oi; updateProgress(); };
+      label.appendChild(input); label.appendChild(document.createTextNode(opt));
+      opts.appendChild(label);
+    });
+    div.appendChild(opts);
+    const fb = document.createElement('div');
+    fb.className = 'feedback'; fb.id = 'fb' + i;
+    div.appendChild(fb);
+    content.appendChild(div);
+  });
+}
+
+function updateProgress() {
+  const answered = answers.filter(a => a !== null).length;
+  progressFill.style.width = (answered / QUESTIONS.length * 100) + '%';
+}
+
+function submitExam() {
+  submitted = true;
+  let score = 0;
+  QUESTIONS.forEach((q, i) => {
+    const div = document.getElementById('q' + i);
+    const fb = document.getElementById('fb' + i);
+    const correct = answers[i] === q.answer;
+    div.classList.remove('correct', 'wrong');
+    fb.classList.remove('show', 'correct', 'wrong');
+    if (correct) {
+      score += 2;
+      div.classList.add('correct');
+      fb.classList.add('show', 'correct');
+      fb.textContent = '✓ Correct (2/2)';
+    } else {
+      div.classList.add('wrong');
+      fb.classList.add('show', 'wrong');
+      fb.textContent = '✗ Wrong (0/2) — Correct: ' + q.options[q.answer];
+    }
+  });
+  const pct = Math.round(score / 100 * 100);
+  document.getElementById('scoreDisplay').textContent = score + ' / 100';
+  document.getElementById('scoreDetail').innerHTML = '<strong>Percentage: ' + pct + '%</strong>';
+  const bw = document.getElementById('badgeWrap'); bw.innerHTML = '';
+  const badge = document.createElement('span');
+  badge.className = 'badge ' + (pct >= 75 ? 'pass' : 'fail');
+  badge.textContent = pct >= 75 ? '✓ PASSED' : '✗ FAILED (need 75%)';
+  bw.appendChild(badge);
+  const r = document.getElementById('results');
+  r.classList.add('show'); r.scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetExam() {
+  if (!confirm('Reset all answers?')) return;
+  answers = new Array(QUESTIONS.length).fill(null);
+  submitted = false;
+  document.getElementById('results').classList.remove('show');
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.question').forEach(q => q.classList.remove('correct', 'wrong'));
+  document.querySelectorAll('.feedback').forEach(f => f.classList.remove('show', 'correct', 'wrong'));
+  progressFill.style.width = '0%';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+render();
+</script>
+</body>
+</html>
